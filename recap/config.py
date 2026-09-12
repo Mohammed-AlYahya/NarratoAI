@@ -56,6 +56,7 @@ class RecapSettings:
 
     torbox_api_key: Optional[str] = None
     tmdb_api_key: Optional[str] = None
+    tmdb_read_access_token: Optional[str] = None  # preferred over tmdb_api_key
     prowlarr_url: Optional[str] = None
     prowlarr_api_key: Optional[str] = None
     youtube_client_secrets: Optional[str] = None
@@ -92,6 +93,7 @@ class RecapSettings:
         for name in (
             "torbox_api_key",
             "tmdb_api_key",
+            "tmdb_read_access_token",
             "prowlarr_url",
             "prowlarr_api_key",
             "youtube_client_secrets",
@@ -105,6 +107,7 @@ class RecapSettings:
         return cls(
             torbox_api_key=_get(env, "TORBOX_API_KEY"),
             tmdb_api_key=_get(env, "TMDB_API_KEY"),
+            tmdb_read_access_token=_get(env, "TMDB_READ_ACCESS_TOKEN"),
             prowlarr_url=_get(env, "PROWLARR_URL"),
             prowlarr_api_key=_get(env, "PROWLARR_API_KEY"),
             youtube_client_secrets=_get(env, "YOUTUBE_CLIENT_SECRETS"),

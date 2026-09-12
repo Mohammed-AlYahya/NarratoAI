@@ -57,7 +57,8 @@ class AcquisitionError(Exception):
 
 @dataclass
 class AcquireProfile:
-    tmdb_api_key: Optional[str] = None
+    tmdb_api_key: Optional[str] = None  # v3 API key (?api_key=...)
+    tmdb_read_access_token: Optional[str] = None  # v4 token (Bearer); preferred when set
     prowlarr_url: Optional[str] = None  # e.g. http://localhost:9696
     prowlarr_api_key: Optional[str] = None
     torbox_api_key: Optional[str] = None
@@ -262,6 +263,24 @@ def rank_releases(releases: list[dict[str, Any]]) -> list[dict[str, Any]]:
 # ---------------------------------------------------------------------------
 
 
+def _tmdb_auth(profile: AcquireProfile) -> tuple[dict[str, str], dict[str, str]]:
+    """Return ``(headers, extra_params)`` for TMDB auth.
+
+    The v4 Read Access Token (Bearer header) is preferred when present;
+    otherwise fall back to the v3 API key as the ``api_key`` query param.
+    """
+    token = (profile.tmdb_read_access_token or "").strip()
+    if token:
+        return {"Authorization": f"Bearer {token}"}, {}
+    api_key = (profile.tmdb_api_key or "").strip()
+    if api_key:
+        return {}, {"api_key": api_key}
+    raise AcquisitionError(
+        "TMDB credentials are required for acquisition: set "
+        "TMDB_READ_ACCESS_TOKEN (v4) or TMDB_API_KEY (v3)"
+    )
+
+
 def search_tmdb(
     movie_name: str,
     profile: AcquireProfile,
@@ -272,12 +291,10 @@ def search_tmdb(
     title, year, overview, runtime, genres, poster_path.
     Raises AcquisitionError on failure.
     """
-    api_key = (profile.tmdb_api_key or "").strip()
-    if not api_key:
-        raise AcquisitionError("TMDB API key is required for acquisition")
+    headers, auth_params = _tmdb_auth(profile)
 
     params: dict[str, Any] = {
-        "api_key": api_key,
+        **auth_params,
         "query": movie_name,
         "include_adult": "false",
     }
@@ -288,13 +305,14 @@ def search_tmdb(
         response = requests.get(
             f"{TMDB_BASE_URL}/search/movie",
             params=params,
+            headers=headers,
             timeout=profile.request_timeout,
         )
     except requests.RequestException as exc:
         raise AcquisitionError(f"TMDB search request failed: {type(exc).__name__}") from exc
     if response.status_code != 200:
         raise AcquisitionError(
-            f"TMDB search returned HTTP {response.status_code}; check the TMDB API key"
+            f"TMDB search returned HTTP {response.status_code}; check the TMDB credentials"
         )
     results = response.json().get("results") or []
     if not results:
@@ -316,7 +334,8 @@ def search_tmdb(
 
     detail_resp = requests.get(
         f"{TMDB_BASE_URL}/movie/{tmdb_id}",
-        params={"api_key": api_key},
+        params=auth_params,
+        headers=headers,
         timeout=profile.request_timeout,
     )
     if detail_resp.status_code != 200:
@@ -327,7 +346,8 @@ def search_tmdb(
 
     ids_resp = requests.get(
         f"{TMDB_BASE_URL}/movie/{tmdb_id}/external_ids",
-        params={"api_key": api_key},
+        params=auth_params,
+        headers=headers,
         timeout=profile.request_timeout,
     )
     if ids_resp.status_code != 200:

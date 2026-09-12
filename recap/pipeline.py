@@ -244,6 +244,7 @@ def _stage_acquire(
 
     profile = AcquireProfile(
         tmdb_api_key=settings.tmdb_api_key,
+        tmdb_read_access_token=getattr(settings, "tmdb_read_access_token", None),
         prowlarr_url=settings.prowlarr_url,
         prowlarr_api_key=settings.prowlarr_api_key,
         torbox_api_key=settings.torbox_api_key,

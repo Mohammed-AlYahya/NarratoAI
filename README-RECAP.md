@@ -42,8 +42,8 @@ cp .env.example .env   # then fill in the keys
 | Key | Purpose |
 | --- | --- |
 | `TORBOX_API_KEY` | TorBox account → Settings → API |
-| `TMDB_API_KEY` | TMDB account → Settings → API → API Key (v3 auth) |
-| `PROWLARR_URL` / `PROWLARR_API_KEY` | Self-hosted Prowlarr (e.g. `http://localhost:9696`); API key under Settings → General |
+| `TMDB_API_KEY` **or** `TMDB_READ_ACCESS_TOKEN` | TMDB account → Settings → API. Only one is needed: the v4 **Read Access Token** (preferred) or the v3 **API Key** |
+| `PROWLARR_URL` / `PROWLARR_API_KEY` | Your **self-hosted** Prowlarr instance (install from prowlarr.com; default `http://localhost:9696`). API key under Settings → General |
 | `YOUTUBE_CLIENT_SECRETS` | Path to the Google OAuth `client_secret.json` |
 | `PRIVACY` | `unlisted` (default), `private` or `public` |
 | `MAX_PARTS` / `MAX_PART_SECONDS` | Recap budget, default `4` × `180`s |
