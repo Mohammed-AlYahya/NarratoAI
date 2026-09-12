@@ -1,0 +1,31 @@
+1
+00:00:00,000 --> 00:00:03,500
+Our hero wakes in a quiet town, unaware of the journey ahead.
+
+2
+00:00:04,000 --> 00:00:07,500
+A mysterious letter arrives, calling him to adventure.
+
+3
+00:00:08,000 --> 00:00:11,500
+He crosses the threshold, leaving everything familiar behind.
+
+4
+00:00:12,000 --> 00:00:15,500
+Trials test his courage as shadows gather on the road.
+
+5
+00:00:16,000 --> 00:00:19,500
+A mentor's gift reveals the strength he carried all along.
+
+6
+00:00:20,000 --> 00:00:23,500
+In the darkest cavern, he faces the dragon of his own fear.
+
+7
+00:00:24,000 --> 00:00:27,000
+Victory won, he turns homeward with the elixir in hand.
+
+8
+00:00:27,500 --> 00:00:30,000
+He returns changed, and the town will never be the same.

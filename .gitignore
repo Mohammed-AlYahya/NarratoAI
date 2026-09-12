@@ -56,6 +56,11 @@ tests/*
 !tests/test_streamlit_widget_session_state.py
 !tests/test_sonilo_bgm_unittest.py
 !tests/test_sonilo_sfx_unittest.py
+!tests/test_recap_pipeline.py
+!tests/assets/
+
+# recap 流水线本地密钥
+.env
 
 docs/reddit-community
 docs/wechat-0.8

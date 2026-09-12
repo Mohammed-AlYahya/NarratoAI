@@ -210,6 +210,20 @@ uv run streamlit run webui.py --server.maxUploadSize=2048
 
 点击查看 [`LICENSE`](LICENSE) 文件
 
+## 一键电影解说短视频（recap 流水线）🎬
+
+本分支新增全自动电影解说流水线：自动获取影片 → LLM 生成解说文案 → 渲染 1–4 集竖屏（1080×1920，上下留边不裁切）解说短片 → 上传到 YouTube 播放列表，任务状态落盘可断点续跑。
+
+```bash
+uv sync
+cp .env.example .env   # 填入 TorBox / TMDB / Prowlarr / YouTube 密钥
+python -m recap "Upgrade" --year 2018
+# 无密钥验收（使用内置测试视频）：
+python -m recap "Test Movie" --mock-acquire --privacy private
+```
+
+完整安装与配置说明（含 YouTube API 开通、OAuth 发布状态、配额说明、字幕来源优先级）见 [README-RECAP.md](README-RECAP.md)。
+
 ## Star History
 
 [![Star History Chart](https://star-history.dera.page/svg?repos=linyqh/NarratoAI&type=Date)](https://star-history.dera.page/#linyqh/NarratoAI&Date)
