@@ -275,7 +275,13 @@ def _stage_acquire(
 
 
 def _extract_embedded_subtitles(video_path: str, out_srt: Path) -> bool:
-    """Try to extract the first embedded subtitle stream via ffmpeg."""
+    """Try to extract a usable text subtitle stream via ffmpeg.
+
+    BluRay/REMUX releases often carry several subtitle streams and the first
+    ones are frequently PGS (bitmap), which cannot be converted to SRT text.
+    Probe the first few subtitle stream indexes and keep the first that
+    yields a non-empty SRT (text streams convert instantly; PGS fails fast).
+    """
     ffmpeg = _find_ffmpeg()
     if not ffmpeg:
         logger.warning(
@@ -283,24 +289,30 @@ def _extract_embedded_subtitles(video_path: str, out_srt: Path) -> bool:
             "ffmpeg not on PATH); skipping embedded subtitle extraction"
         )
         return False
-    cmd = [ffmpeg, "-y", "-i", video_path, "-map", "0:s:0", str(out_srt)]
-    logger.debug(f"[subtitles] embedded extraction: {' '.join(cmd)}")
-    try:
-        result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=600, check=False
+    for stream_index in range(6):  # 0:s:0 .. 0:s:5
+        cmd = [
+            ffmpeg, "-y", "-i", video_path,
+            "-map", f"0:s:{stream_index}", str(out_srt),
+        ]
+        logger.debug(f"[subtitles] embedded extraction: {' '.join(cmd)}")
+        try:
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=600, check=False
+            )
+        except Exception as exc:
+            logger.warning(f"[subtitles] ffmpeg extraction failed to run: {exc}")
+            return False
+        ok = (
+            result.returncode == 0
+            and out_srt.is_file()
+            and out_srt.stat().st_size > 0
         )
-    except Exception as exc:
-        logger.warning(f"[subtitles] ffmpeg extraction failed to run: {exc}")
-        return False
-    ok = (
-        result.returncode == 0
-        and out_srt.is_file()
-        and out_srt.stat().st_size > 0
-    )
-    if not ok:
-        logger.info(f"[subtitles] no usable embedded subtitle stream in {video_path}")
+        if ok:
+            logger.info(f"[subtitles] extracted subtitle stream 0:s:{stream_index}")
+            return True
         out_srt.unlink(missing_ok=True)
-    return ok
+    logger.info(f"[subtitles] no usable text subtitle stream in {video_path}")
+    return False
 
 
 def _fun_asr_config() -> dict:
@@ -610,7 +622,7 @@ def _generate_script_items(
             temperature=0.3,
             narration_language=settings.narration_language,
             drama_genre=drama_genre,
-            original_sound_ratio=0,
+            original_sound_ratio=int(getattr(settings, "original_sound_ratio", 0) or 0),
         ),
         "script matching",
     )

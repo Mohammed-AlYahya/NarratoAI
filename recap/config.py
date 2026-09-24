@@ -69,6 +69,7 @@ class RecapSettings:
     narration_language: str = DEFAULT_NARRATION_LANGUAGE
     tts_engine: str = DEFAULT_TTS_ENGINE
     tts_voice_name: str = ""  # resolved lazily from config.ui when empty
+    original_sound_ratio: int = 0  # % of recap segments that keep original movie audio
 
     extra: dict = field(default_factory=dict)
 
@@ -86,6 +87,10 @@ class RecapSettings:
         if self.top_n_candidates < 1:
             raise SettingsError(
                 f"TOP_N_CANDIDATES must be >= 1, got {self.top_n_candidates}"
+            )
+        if not 0 <= self.original_sound_ratio <= 100:
+            raise SettingsError(
+                f"ORIGINAL_SOUND_RATIO must be 0-100, got {self.original_sound_ratio}"
             )
         if not self.youtube_token_path:
             self.youtube_token_path = str(REPO_ROOT / "storage" / "youtube_token.json")
@@ -122,6 +127,7 @@ class RecapSettings:
             or DEFAULT_NARRATION_LANGUAGE,
             tts_engine=_get(env, "TTS_ENGINE", DEFAULT_TTS_ENGINE) or DEFAULT_TTS_ENGINE,
             tts_voice_name=_get(env, "TTS_VOICE_NAME"),
+            original_sound_ratio=_get_int(env, "ORIGINAL_SOUND_RATIO", 0),
         )
 
     def resolve_tts_voice_name(self) -> str:

@@ -86,10 +86,13 @@ python -m recap "Upgrade" --stage render
 The LLM needs the movie's dialogue as text. The pipeline tries, in order:
 
 1. `--subtitle <file.srt>` CLI argument (highest priority).
-2. Embedded subtitle stream extraction via ffmpeg
-   (`ffmpeg -y -i <video> -map 0:s:0 out.srt`; uses `config.app.ffmpeg_path` when
-   configured, otherwise `ffmpeg` on PATH; skipped with a warning when no ffmpeg
-   is available).
+2. Embedded subtitle stream extraction via ffmpeg. The first several subtitle
+   streams are probed and the first **text-based** one (SRT/ASS/VTT) is used —
+   BluRay **PGS streams are bitmap images and cannot be converted to text**, so
+   PGS-only releases fall through to option 3/4. SDH captions with sound-effect
+   markers (`[GLASS SHATTERING]`) are fine and give the LLM useful action context.
+   (Uses `config.app.ffmpeg_path` when configured, otherwise `ffmpeg` on PATH;
+   skipped with a warning when no ffmpeg is available.)
 3. A configured NarratoAI **fun_asr** backend in `config.toml`
    (`[fun_asr] auto_transcribe_enabled = true` with `backend = "local" | "firered" | "bailian"`).
 4. Otherwise the run stops with a clear error asking for `--subtitle` or fun_asr.
@@ -104,6 +107,9 @@ The LLM needs the movie's dialogue as text. The pipeline tries, in order:
   the story overflows, the narration copy is regenerated shorter (compress-and-regenerate,
   up to 3 attempts) — a dangling ending is never emitted.
 - Narration loud, BGM ≈ 0.25, original audio ≈ 0.1 to approximate ducking.
+- `ORIGINAL_SOUND_RATIO` (default `0`) controls how many recap segments play with
+  the movie's **original audio** instead of voiceover — set it to `20`–`30` to let
+  key scenes run with original dialogue/sound between narration blocks.
 
 ## TMDB attribution
 
